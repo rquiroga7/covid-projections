@@ -143,7 +143,7 @@ const ChartZones = ({
               hideAxisLine
               hideTicks
               hideZero
-              tickFormat={(num: number) => formatPercent(num)}
+              tickFormat={formatPercent}
             />
           </Style.Axis>
         </Group>
