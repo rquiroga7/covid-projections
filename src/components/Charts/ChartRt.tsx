@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment';
-import { isUndefined } from 'lodash';
+import { isDate, isUndefined } from 'lodash';
 import { min as d3min, max as d3max } from 'd3-array';
 import { Group } from '@vx/group';
 import { ParentSize } from '@vx/responsive';
@@ -36,10 +36,10 @@ const getYAreaHigh = (d: PointRt) => d?.y?.high;
 const getYAreaLow = (d: PointRt) => d?.y?.low;
 
 const hasData = (d: any) =>
-  !isUndefined(getDate(d)) &&
-  !isUndefined(getRt(d)) &&
-  !isUndefined(getYAreaLow(d)) &&
-  !isUndefined(getYAreaHigh(d));
+  isDate(getDate(d)) &&
+  Number.isFinite(getRt(d)) &&
+  Number.isFinite(getYAreaLow(d)) &&
+  Number.isFinite(getYAreaHigh(d));
 
 const getTooltipTitle = (d: PointRt): string =>
   moment(getDate(d)).format('dddd, MMM D, YYYY');
