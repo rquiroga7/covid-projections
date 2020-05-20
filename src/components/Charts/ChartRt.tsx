@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment';
-import { isDate, isUndefined } from 'lodash';
+import { isDate } from 'lodash';
 import { min as d3min, max as d3max } from 'd3-array';
 import { Group } from '@vx/group';
 import { ParentSize } from '@vx/responsive';
@@ -12,7 +12,7 @@ import { LinePath, Area } from '@vx/shape';
 import { useTooltip } from '@vx/tooltip';
 import { localPoint } from '@vx/event';
 import { Column, RtRange, RT_TRUNCATION_DAYS } from 'common/models/Projection';
-import { CASE_GROWTH_RATE_LEVEL_INFO_MAP } from 'common/metrics/case_growth';
+import { CASE_GROWTH_RATE_LEVEL_INFO_MAP as zones } from 'common/metrics/case_growth';
 import BoxedAnnotation from './BoxedAnnotation';
 import HoverOverlay from './HoverOverlay';
 import RectClipGroup from './RectClipGroup';
@@ -85,16 +85,8 @@ const ChartRt = ({
   const getXCoord = (d: PointRt) => xScale(getDate(d));
   const getYCoord = (d: PointRt) => yScale(getRt(d));
 
-  const yTicks = computeTickPositions(
-    yDataMin,
-    yDataMax,
-    CASE_GROWTH_RATE_LEVEL_INFO_MAP,
-  );
-  const regions = getChartRegions(
-    yDataMin,
-    yDataMax,
-    CASE_GROWTH_RATE_LEVEL_INFO_MAP,
-  );
+  const yTicks = computeTickPositions(yDataMin, yDataMax, zones);
+  const regions = getChartRegions(yDataMin, yDataMax, zones);
 
   const lastValidDate = getDate(last(data));
 
@@ -104,10 +96,7 @@ const ChartRt = ({
   const truncationPoint = last(prevData);
   const truncationRt = getRt(truncationPoint);
   const yTruncationRt = yScale(truncationRt);
-  const truncationZone = getZoneByValue(
-    truncationRt,
-    CASE_GROWTH_RATE_LEVEL_INFO_MAP,
-  );
+  const truncationZone = getZoneByValue(truncationRt, zones);
 
   const { tooltipData, tooltipOpen, showTooltip, hideTooltip } = useTooltip<
     PointRt
@@ -221,12 +210,7 @@ const ChartRt = ({
               cx={getXCoord(tooltipData)}
               cy={getYCoord(tooltipData)}
               r={6}
-              fill={
-                getZoneByValue(
-                  getRt(tooltipData),
-                  CASE_GROWTH_RATE_LEVEL_INFO_MAP,
-                ).color
-              }
+              fill={getZoneByValue(getRt(tooltipData), zones).color}
             />
           )}
           <HoverOverlay
