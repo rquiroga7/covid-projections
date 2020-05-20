@@ -19,7 +19,7 @@ import { ZoneChartWrapper } from 'components/Charts/ZoneChart.style';
 import Chart from 'components/Charts/Chart';
 import ClaimStateBlock from 'components/ClaimStateBlock/ClaimStateBlock';
 import ShareModelBlock from '../../components/ShareBlock/ShareModelBlock';
-import { ChartRt } from '../../components/Charts';
+import { ChartRt, ChartZones } from '../../components/Charts';
 import {
   optionsHospitalUsage,
   optionsPositiveTests,
@@ -31,6 +31,7 @@ import { formatDate } from 'common/utils';
 import { POSITIVE_RATE_DISCLAIMER } from 'common/metrics/positive_rate';
 import { CASE_GROWTH_DISCLAIMER } from 'common/metrics/case_growth';
 import { HOSPITALIZATIONS_DISCLAIMER } from 'common/metrics/hospitalizations';
+import { POSITIVE_TESTS_LEVEL_INFO_MAP } from 'common/metrics/positive_rate';
 
 // TODO(michael): These format helpers should probably live in a more
 // general-purpose location, not just for charts.
@@ -115,6 +116,17 @@ const ChartsHolder = (props: {
                       options={optionsPositiveTests(testPositiveData) as any}
                     />
                   </ZoneChartWrapper>
+                  <Disclaimer metricName="positive test rate">
+                    {POSITIVE_RATE_DISCLAIMER}
+                  </Disclaimer>
+                </>
+              )}
+              {testPositiveData && (
+                <>
+                  <ChartZones
+                    columnData={testPositiveData}
+                    zones={POSITIVE_TESTS_LEVEL_INFO_MAP}
+                  />
                   <Disclaimer metricName="positive test rate">
                     {POSITIVE_RATE_DISCLAIMER}
                   </Disclaimer>

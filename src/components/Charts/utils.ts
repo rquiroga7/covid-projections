@@ -234,3 +234,18 @@ export const getZoneByValue = (value: number, zones: Zones) => {
     ? zones[Level.HIGH]
     : zones[Level.MEDIUM];
 };
+
+export const computeTickPositions = (
+  minY: number,
+  maxY: number,
+  zones: Zones,
+) => {
+  const maxZones = zones[Level.MEDIUM].upperLimit;
+  const maxTick = maxY < maxZones ? 1.5 * maxZones : maxY;
+  return [
+    minY,
+    zones[Level.LOW].upperLimit,
+    zones[Level.MEDIUM].upperLimit,
+    maxTick,
+  ];
+};
