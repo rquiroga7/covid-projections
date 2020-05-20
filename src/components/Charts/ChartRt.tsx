@@ -11,13 +11,13 @@ import { AxisBottom, AxisLeft } from '@vx/axis';
 import { LinePath, Area } from '@vx/shape';
 import { useTooltip } from '@vx/tooltip';
 import { localPoint } from '@vx/event';
-import { LevelInfoMap, Level } from 'common/level';
 import { Column, RtRange, RT_TRUNCATION_DAYS } from 'common/models/Projection';
 import { CASE_GROWTH_RATE_LEVEL_INFO_MAP } from 'common/metrics/case_growth';
 import BoxedAnnotation from './BoxedAnnotation';
 import HoverOverlay from './HoverOverlay';
 import RectClipGroup from './RectClipGroup';
 import {
+  computeTickPositions,
   formatDecimal,
   getChartRegions,
   getTruncationDate,
@@ -28,21 +28,6 @@ import * as Style from './Charts.style';
 
 type PointRt = Omit<Column, 'y'> & {
   y: RtRange;
-};
-
-const computeTickPositions = (
-  minY: number,
-  maxY: number,
-  zones: LevelInfoMap,
-) => {
-  const maxZones = zones[Level.MEDIUM].upperLimit;
-  const maxTick = maxY < maxZones ? 1.5 * maxZones : maxY;
-  return [
-    minY,
-    zones[Level.LOW].upperLimit,
-    zones[Level.MEDIUM].upperLimit,
-    maxTick,
-  ];
 };
 
 const getDate = (d: PointRt) => new Date(d.x);
