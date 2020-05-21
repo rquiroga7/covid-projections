@@ -6,6 +6,8 @@ import { AxisBottom, AxisLeft } from '@vx/axis';
 import { curveNatural } from '@vx/curve';
 import { GridRows } from '@vx/grid';
 import { Group } from '@vx/group';
+import { useTooltip } from '@vx/tooltip';
+import { localPoint } from '@vx/event';
 import { ParentSize } from '@vx/responsive';
 import { scaleLinear, scaleTime } from '@vx/scale';
 import { LinePath } from '@vx/shape';
@@ -13,6 +15,8 @@ import { Column } from 'common/models/Projection';
 import { LevelInfoMap } from 'common/level';
 import RectClipGroup from './RectClipGroup';
 import BoxedAnnotation from './BoxedAnnotation';
+import HoverOverlay from './HoverOverlay';
+
 import {
   getChartRegions,
   computeTickPositions,
@@ -30,6 +34,9 @@ const getDate = (d: Point) => new Date(d.x);
 const getY = (d: Point) => d.y;
 
 const hasData = (d: any) => isDate(getDate(d)) && Number.isFinite(getY(d));
+
+const getTooltipTitle = (d: Point): string =>
+  moment(getDate(d)).format('dddd, MMM D, YYYY');
 
 const ChartZones = ({
   width,
@@ -84,6 +91,24 @@ const ChartZones = ({
   const lastPointY = getY(lastPoint);
   const lastPointZone = getZoneByValue(lastPointY, zones);
 
+  const { tooltipData, tooltipOpen, showTooltip, hideTooltip } = useTooltip<
+    Point
+  >();
+
+  const onMouseOver = (
+    event: React.MouseEvent<SVGPathElement, MouseEvent>,
+    d: Point,
+  ) => {
+    // @ts-ignore - typing bug
+    const coords = localPoint(event.target.ownerSVGElement, event);
+    if (!coords) return;
+    showTooltip({
+      tooltipLeft: coords.x,
+      tooltipTop: coords.y,
+      tooltipData: d,
+    });
+  };
+
   return (
     <Style.PositionRelative>
       <svg width={width} height={height}>
@@ -123,7 +148,7 @@ const ChartZones = ({
           </Style.LineGrid>
           <Style.TextAnnotation>
             <BoxedAnnotation
-              x={getXCoord(lastPoint)}
+              x={getXCoord(lastPoint) + 30}
               y={getYCoord(lastPoint)}
               text={formatPercent(lastPointY, 1)}
             />
@@ -143,11 +168,41 @@ const ChartZones = ({
               hideAxisLine
               hideTicks
               hideZero
-              tickFormat={formatPercent}
+              tickFormat={(num: number) => formatPercent(num, 0)}
             />
           </Style.Axis>
+          {tooltipOpen && tooltipData && (
+            <Style.CircleMarker
+              cx={getXCoord(tooltipData)}
+              cy={getYCoord(tooltipData)}
+              r={6}
+              fill={getZoneByValue(getY(tooltipData), zones).color}
+            />
+          )}
+          <HoverOverlay
+            width={chartWidth}
+            height={chartHeight}
+            data={data}
+            x={getXCoord}
+            y={getYCoord}
+            onMouseOver={onMouseOver}
+            onMouseOut={hideTooltip}
+          />
         </Group>
       </svg>
+      {tooltipOpen && tooltipData && (
+        <Style.Tooltip
+          style={{
+            top: marginTop + getYCoord(tooltipData),
+            left: marginLeft + getXCoord(tooltipData),
+          }}
+        >
+          <Style.TooltipTitle>
+            {getTooltipTitle(tooltipData)}
+          </Style.TooltipTitle>
+          <div>{`${formatPercent(getY(tooltipData), 1)}`}</div>
+        </Style.Tooltip>
+      )}
     </Style.PositionRelative>
   );
 };
