@@ -3,20 +3,20 @@ import moment from 'moment';
 import { isDate } from 'lodash';
 import { min as d3min, max as d3max } from 'd3-array';
 import { AxisBottom, AxisLeft } from '@vx/axis';
-import { curveNatural } from '@vx/curve';
+import { localPoint } from '@vx/event';
 import { GridRows } from '@vx/grid';
 import { Group } from '@vx/group';
-import { useTooltip } from '@vx/tooltip';
-import { localPoint } from '@vx/event';
 import { ParentSize } from '@vx/responsive';
 import { scaleLinear, scaleTime } from '@vx/scale';
-import { LinePath } from '@vx/shape';
+import { useTooltip } from '@vx/tooltip';
 import { Column } from 'common/models/Projection';
 import { LevelInfoMap } from 'common/level';
 import RectClipGroup from './RectClipGroup';
 import BoxedAnnotation from './BoxedAnnotation';
 import HoverOverlay from './HoverOverlay';
-
+import ZoneAnnotation from './ZoneAnnotation';
+import ZoneLinePath from './ZoneLinePath';
+import * as Style from './Charts.style';
 import {
   getChartRegions,
   computeTickPositions,
@@ -24,7 +24,6 @@ import {
   formatPercent,
   getZoneByValue,
 } from './utils';
-import * as Style from './Charts.style';
 
 type Point = Omit<Column, 'y'> & {
   y: number;
@@ -116,30 +115,23 @@ const ChartZones = ({
           <RectClipGroup width={chartWidth} height={chartHeight}>
             {regions.map((region, i) => (
               <Group key={`chart-region-${i}`}>
-                <RectClipGroup
-                  y={yScale(region.valueTo)}
-                  width={chartWidth}
-                  height={yScale(region.valueFrom) - yScale(region.valueTo)}
-                >
-                  <Style.SeriesLine stroke={region.color}>
-                    <LinePath
-                      data={data}
-                      x={getXCoord}
-                      y={getYCoord}
-                      curve={curveNatural}
-                    />
-                  </Style.SeriesLine>
-                </RectClipGroup>
-                <Style.RegionAnnotation
-                  color={region.color}
-                  isActive={lastPointZone.name === region.name}
-                >
-                  <BoxedAnnotation
-                    x={xScale(maxDate) - 10}
-                    y={yScale(0.5 * (region.valueFrom + region.valueTo))}
-                    text={region.name}
+                <Style.SeriesLine stroke={region.color}>
+                  <ZoneLinePath
+                    data={data}
+                    x={getXCoord}
+                    y={getYCoord}
+                    region={region}
+                    width={chartWidth}
+                    yScale={yScale}
                   />
-                </Style.RegionAnnotation>
+                </Style.SeriesLine>
+                <ZoneAnnotation
+                  color={region.color}
+                  name={region.name}
+                  isActive={lastPointZone.name === region.name}
+                  x={xScale(maxDate) - 10}
+                  y={yScale(0.5 * (region.valueFrom + region.valueTo))}
+                />
               </Group>
             ))}
           </RectClipGroup>

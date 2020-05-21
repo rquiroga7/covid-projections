@@ -2,20 +2,23 @@ import React from 'react';
 import moment from 'moment';
 import { isDate } from 'lodash';
 import { min as d3min, max as d3max } from 'd3-array';
+import { AxisBottom, AxisLeft } from '@vx/axis';
+import { curveNatural } from '@vx/curve';
+import { localPoint } from '@vx/event';
+import { GridRows } from '@vx/grid';
 import { Group } from '@vx/group';
 import { ParentSize } from '@vx/responsive';
 import { scaleLinear, scaleTime } from '@vx/scale';
-import { GridRows } from '@vx/grid';
-import { curveNatural } from '@vx/curve';
-import { AxisBottom, AxisLeft } from '@vx/axis';
-import { LinePath, Area } from '@vx/shape';
+import { Area } from '@vx/shape';
 import { useTooltip } from '@vx/tooltip';
-import { localPoint } from '@vx/event';
 import { Column, RtRange, RT_TRUNCATION_DAYS } from 'common/models/Projection';
 import { CASE_GROWTH_RATE_LEVEL_INFO_MAP as zones } from 'common/metrics/case_growth';
 import BoxedAnnotation from './BoxedAnnotation';
 import HoverOverlay from './HoverOverlay';
 import RectClipGroup from './RectClipGroup';
+import ZoneAnnotation from './ZoneAnnotation';
+import ZoneLinePath from './ZoneLinePath';
+import * as Style from './Charts.style';
 import {
   computeTickPositions,
   formatDecimal,
@@ -24,7 +27,6 @@ import {
   getZoneByValue,
   last,
 } from './utils';
-import * as Style from './Charts.style';
 
 type PointRt = Omit<Column, 'y'> & {
   y: RtRange;
@@ -137,38 +139,33 @@ const ChartRt = ({
             </Style.SeriesArea>
             {regions.map((region, i) => (
               <Group key={`chart-region-${i}`}>
-                <RectClipGroup
-                  y={yScale(region.valueTo)}
-                  width={chartWidth}
-                  height={yScale(region.valueFrom) - yScale(region.valueTo)}
-                >
-                  <Style.SeriesLine stroke={region.color}>
-                    <LinePath
-                      data={prevData}
-                      x={getXCoord}
-                      y={getYCoord}
-                      curve={curveNatural}
-                    />
-                  </Style.SeriesLine>
-                  <Style.SeriesDashed stroke={region.color}>
-                    <LinePath
-                      data={restData}
-                      x={getXCoord}
-                      y={getYCoord}
-                      curve={curveNatural}
-                    />
-                  </Style.SeriesDashed>
-                </RectClipGroup>
-                <Style.RegionAnnotation
-                  color={region.color}
-                  isActive={truncationZone.name === region.name}
-                >
-                  <BoxedAnnotation
-                    x={xScale(maxDate) - 10}
-                    y={yScale(0.5 * (region.valueFrom + region.valueTo))}
-                    text={region.name}
+                <Style.SeriesLine stroke={region.color}>
+                  <ZoneLinePath
+                    data={prevData}
+                    x={getXCoord}
+                    y={getYCoord}
+                    region={region}
+                    width={chartWidth}
+                    yScale={yScale}
                   />
-                </Style.RegionAnnotation>
+                </Style.SeriesLine>
+                <Style.SeriesDashed stroke={region.color}>
+                  <ZoneLinePath
+                    data={restData}
+                    x={getXCoord}
+                    y={getYCoord}
+                    region={region}
+                    width={chartWidth}
+                    yScale={yScale}
+                  />
+                </Style.SeriesDashed>
+                <ZoneAnnotation
+                  color={region.color}
+                  name={region.name}
+                  isActive={truncationZone.name === region.name}
+                  x={xScale(maxDate) - 10}
+                  y={yScale(0.5 * (region.valueFrom + region.valueTo))}
+                />
               </Group>
             ))}
           </RectClipGroup>
